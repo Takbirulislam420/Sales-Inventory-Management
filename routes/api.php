@@ -23,3 +23,15 @@ Route::prefix('auth')->group(function(){
     Route::post('/login',[AuthController::class,'login']);
 
 });
+
+// if route not found then it will response this
+Route::fallback(function(){
+        return response()->json([
+        'status'=> 'success',
+        'message' => 'Api endpoint not found',
+        'data' => [],
+        'error' => []
+    ]);
+});
+
+
