@@ -22,7 +22,7 @@ Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
     Route::post('password/forget_Password', [PasswordController::class, 'forgetPassword'])->name('forget_password');
-    Route::post('password/Password_reset', [PasswordController::class, 'forgetReset'])->name('Password_reset');
+    Route::post('password/Password_reset', [PasswordController::class, 'passwordReset'])->name('Password_reset');
 });
 
 // if route not found then it will response this

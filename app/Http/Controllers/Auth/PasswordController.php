@@ -25,7 +25,7 @@ class PasswordController extends Controller
             ], Response::HTTP_NOT_FOUND);
         }
         // genarate random token
-        $token = Str::random(60);
+        $token =Str::random(60);
         // insert the token info password_reset token table
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $email],
@@ -36,27 +36,75 @@ class PasswordController extends Controller
             ]
         );
 
-        $emailData=[
-            'user'=> $user,
+        $emailData = [
+            'user' => $user,
             'token' => $token
         ];
 
-        Mail::send('emails.password_reset',$emailData,function($message) use($user){
-            $message->to($user->email,$user->name);
+        Mail::send('emails.password_reset', $emailData, function ($message) use ($user) {
+            $message->to($user->email, $user->name);
             $message->subject('Reset password');
         });
 
         return response()->json(
-           [ 'status'=>'success',
-            'message'=>'password reset link send to your mail'
-            ],Response::HTTP_OK
+            [
+                'status' => 'success',
+                'message' => 'password reset link send to your mail',
+                'token'=> $token,
+            ],
+            Response::HTTP_OK
         );
-
-       
     }
 
     // For reset password
-    public function passwordReset(){
+    public function passwordReset(Request $request)
+    {
+        $email = $request->email;
+        $password = $request->password;
+        $token = $request->token;
 
+        $tokenRecord = DB::table('password_reset_tokens')->where('token', $token)->first();
+
+        if (!$tokenRecord || ($token != $tokenRecord->token)) {
+            return response()->json(
+                [
+                    'status' => 'error',
+                    'message' => 'token invalid'
+                ],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json(
+                [
+                    'status' => 'error',
+                    'message' => 'user not found'
+                ],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        if (Carbon::parse($tokenRecord->created_at)->addHour()->isPast()) {
+            DB::table('password_reset_tokens')->where('token', $token)->delete();
+            return response()->json(
+                [
+                    'status' => 'error',
+                    'message' => 'token has expaired'
+                ],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        $user->update(['password'=> $password]);
+        DB::table('password_reset_tokens')->where('token', $token)->delete();
+        return response()->json(
+                [
+                    'status' => 'success',
+                    'message' => 'password reset successfull'
+                ],
+                Response::HTTP_OK
+            );
     }
 }
