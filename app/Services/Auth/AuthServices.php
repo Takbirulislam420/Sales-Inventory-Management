@@ -80,10 +80,13 @@ class AuthServices
                 'created_at' => Carbon::now()
             ]
         );
+        // Get the row data
+        $tokenRow = DB::table('password_reset_tokens')->where('email', $email)->first();
+
 
         $emailData = [
             'user' => $user,
-            'token' => $token
+            'token' => $tokenRow->token
         ];
 
         Mail::send('emails.password_reset', $emailData, function ($message) use ($user) {
@@ -95,7 +98,7 @@ class AuthServices
             [
                 'status' => 'success',
                 'message' => 'password reset link send to your mail',
-                'token' => $token,
+                'token' => $tokenRow->token,
             ],
             Response::HTTP_OK
         );

@@ -8,6 +8,7 @@
 </head>
 <body>
     <h1>Hello user {{ $user->name }} </h1>
+    <p>Token:{{$token}}
     <p>you have requested for password reset </p>
     <p>Please click the below link for reset your password</p>
     <a href="{{url('password/Password_reset?token='.$token)}}">Reseet password </a>
