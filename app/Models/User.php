@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use phpDocumentor\Reflection\Types\Boolean;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
@@ -52,7 +53,7 @@ class User extends Authenticatable implements JWTSubject
     }
 
     // this both function for jwt token
-        public function getJWTIdentifier()
+    public function getJWTIdentifier()
     {
         return $this->getKey();
     }
@@ -67,9 +68,24 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-    public function roles():BelongsToMany
+    public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(Role::class,'role_users');
+        return $this->belongsToMany(Role::class, 'role_users');
+    }
 
+    public function hasRole($role): bool
+    {
+        return $this->roles()->where('slug', $role)->exists();
+    }
+
+    public function hasAnyRole($roles): bool
+    {
+        return $this->roles()->whereIn('slug', $roles)->exists();
+    }
+
+    public function getAllPermission(){
+        return $this->roles()->flatMap(function($role){
+            return $role->permission;
+        })->unique();
     }
 }
